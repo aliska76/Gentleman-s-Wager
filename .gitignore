@@ -4,6 +4,7 @@ node_modules/
 # Build output
 dist/
 build/
+my_temps/
 
 # Environment files (real secrets/config — .env.example files stay tracked)
 .env
