@@ -1,0 +1,31 @@
+services:
+  api:
+    build: ./backend-api
+    ports:
+      - "3000:3000"
+    environment:
+      DATABASE_URL: "file:/data/dev.db"
+      JWT_SECRET: "dev-secret-change-me"
+      REDIS_URL: "redis://redis:6379"
+      LEADERBOARD_TTL_SECONDS: "120"
+      PORT: "3000"
+    volumes:
+      - api-data:/data
+    depends_on:
+      - redis
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        VITE_API_BASE_URL: "http://localhost:3000"
+    ports:
+      - "5173:80"
+    depends_on:
+      - api
+
+volumes:
+  api-data:
