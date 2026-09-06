@@ -52,6 +52,38 @@ in `backend-api/`.
 - `npm run build` — type-checks (`tsc -b`) then builds to `dist/`.
 - `npm run preview` — serves the production build locally.
 - `npm run test` / `npm run test:watch` — Vitest.
+- `npm run dev:ssr` / `npm run build:ssr` — same as `dev`/`build`, but with
+  the styled-components `ssr` babel option turned on. See "Styled-components
+  debug names" below — this app doesn't actually do server-rendering, these
+  exist to demonstrate the toggle.
+
+## Styled-components debug names
+
+Every styled component (`styled.div`, etc.) renders two CSS classes, e.g.
+`sc-hiCkpJ dmJoJw`: a stable per-component id, and a hash of its actual
+generated CSS (so two components that end up with identical styles share
+the second class). Neither carries the name of the variable you gave the
+component — styled-components doesn't have access to that at runtime.
+
+`babel-plugin-styled-components` (wired into `vite.config.ts` via
+`@vitejs/plugin-react`'s `babel` option) adds that back in `displayName` +
+`fileName` mode: classes and React DevTools component names show up as
+e.g. `Shell-sc-hiCkpJ-1` instead of a bare hash, which makes inspecting the
+DOM and the component tree far more readable. Requires
+`babel-plugin-styled-components` as a dev dependency
+(`npm install --save-dev babel-plugin-styled-components`).
+
+The plugin also has an `ssr` option (default `true` upstream), which adds
+a unique id to every styled component so client and server generate the
+same class names during hydration — needed only when the same app is
+literally rendered on both a server and the browser. This project has no
+server-rendering step (it's a static SPA served by nginx in Docker, or
+Vite's dev server locally), so `ssr` would just be dead weight; `npm run
+dev`/`npm run build` set it to `false`. The `:ssr` script variants
+(`npm run dev:ssr` / `npm run build:ssr`, driven by Vite's `--mode ssr`)
+flip it back on, kept around so the toggle is there and documented if this
+ever grows an actual SSR setup, rather than because this app needs it
+today.
 
 ## Folder structure
 

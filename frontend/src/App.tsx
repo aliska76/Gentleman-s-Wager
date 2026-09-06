@@ -9,7 +9,8 @@ import { Heading1 } from './components/common/Typography.styles';
 import { GlobalStyles } from './theme/GlobalStyles.styles';
 import { useGame } from './api/useGames';
 import type { GameState } from './types/game';
-import { Header, Main, Nav, Shell } from './App.styles';
+import { Brand, Header, Logo, Main, MenuButton, MenuWrapper, Nav, Shell } from './App.styles';
+import logo from './assets/logo.png';
 
 const queryClient = new QueryClient();
 
@@ -71,11 +72,6 @@ function AppShell() {
     setView('game');
   }
 
-  function handleExitToLobby() {
-    updateActiveGame(null);
-    setView('lobby');
-  }
-
   /** Back to the lobby for a new game — keeps whoever is already logged in logged in. */
   function handleNewGame() {
     updateActiveGame(null);
@@ -92,23 +88,34 @@ function AppShell() {
   return (
     <Shell data-testid="app-shell">
       <Header data-testid="app-header">
-        <Heading1>Gentleman&rsquo;s Wager</Heading1>
+        <Brand>
+          <Logo src={logo} alt="" data-testid="app-logo" />
+          <Heading1>Gentleman&rsquo;s Wager</Heading1>
+        </Brand>
         {player1 && (
-          <Nav data-testid="app-nav">
-            <Button data-testid="nav-leaderboard-button" onClick={() => setView('leaderboard')}>Leaderboard</Button>
-            {activeGame && (
-              <Button data-testid="nav-current-game-button" onClick={() => setView('game')}>Current game</Button>
-            )}
-            <Button data-testid="nav-new-game-button" onClick={handleNewGame}>New game</Button>
-            <Button data-testid="nav-new-player-button" onClick={handleNewPlayer}>New player</Button>
-          </Nav>
+          <MenuWrapper>
+            <MenuButton type="button" aria-label="Menu" data-testid="nav-menu-button">
+              <span />
+              <span />
+              <span />
+              <span />
+            </MenuButton>
+            <Nav data-testid="app-nav">
+              <Button data-testid="nav-leaderboard-button" onClick={() => setView('leaderboard')}>Leaderboard</Button>
+              {activeGame && (
+                <Button data-testid="nav-current-game-button" onClick={() => setView('game')}>Current game</Button>
+              )}
+              <Button data-testid="nav-new-game-button" onClick={handleNewGame}>New game</Button>
+              <Button data-testid="nav-new-player-button" onClick={handleNewPlayer}>New player</Button>
+            </Nav>
+          </MenuWrapper>
         )}
       </Header>
 
       <Main data-testid="app-main">
         {view === 'lobby' && <LoginScreen onGameStart={handleGameStart} />}
         {view === 'game' && activeGame && (
-          <GameScreen game={activeGame} onGameChange={updateActiveGame} onExitToLobby={handleExitToLobby} />
+          <GameScreen game={activeGame} onGameChange={updateActiveGame} />
         )}
         {view === 'leaderboard' && <LeaderboardScreen />}
       </Main>

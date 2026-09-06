@@ -6,7 +6,9 @@
   "description": "Gentleman's Wager — frontend (React). No game logic lives here; it only displays state from backend-api and calls its endpoints.",
   "scripts": {
     "dev": "vite",
+    "dev:ssr": "vite --mode ssr",
     "build": "tsc -b && vite build",
+    "build:ssr": "tsc -b && vite build --mode ssr",
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest"
@@ -25,9 +27,10 @@
     "@types/react": "^18.3.5",
     "@types/react-dom": "^18.3.0",
     "@vitejs/plugin-react": "^4.3.1",
+    "babel-plugin-styled-components": "^2.3.0",
     "jsdom": "^25.0.0",
     "typescript": "^5.5.4",
-    "vite": "^5.4.6",
+    "vite": "^6.4.3",
     "vitest": "^3.2.6"
   }
 }

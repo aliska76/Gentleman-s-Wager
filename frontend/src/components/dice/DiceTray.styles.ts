@@ -2,7 +2,14 @@ import styled, { keyframes } from 'styled-components';
 
 export const Tray = styled.div<{ $busted?: boolean }>`
   display: flex;
-  gap: var(--space-3);
+  /*
+   * space-4, not space-3 (what GameControls' button row uses) — the dice's
+   * soft drop shadow (Face's box-shadow in Die.styles.ts) bleeds into a
+   * same-size gap and reads as visibly tighter than the crisp-bordered
+   * buttons below it, even though the raw gap would be identical. The
+   * extra space compensates so the two rows read as evenly spaced.
+   */
+  gap: var(--space-4);
   align-items: center;
   min-height: 64px;
 

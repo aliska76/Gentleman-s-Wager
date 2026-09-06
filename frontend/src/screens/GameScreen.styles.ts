@@ -20,3 +20,11 @@ export const ErrorText = styled.p`
   font-size: var(--font-size-sm);
   margin: 0;
 `;
+
+export const TargetScore = styled.p`
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  margin: 0;
+`;

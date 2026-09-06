@@ -59,10 +59,16 @@ export const Score = styled.p`
   margin: var(--space-1) 0;
 `;
 
-export const RoundScore = styled.p`
+/**
+ * Always rendered (see ScoreBoard.tsx) so both player cards reserve the
+ * same line for it — otherwise the active player's card, with this line
+ * filled in, ends up taller than the other one.
+ */
+export const RoundScore = styled.p<{ $visible?: boolean }>`
   color: var(--color-gold);
   font-size: var(--font-size-sm);
   margin: 0;
+  visibility: ${(props) => (props.$visible ? 'visible' : 'hidden')};
 `;
 
 export const WinnerBadge = styled.span`

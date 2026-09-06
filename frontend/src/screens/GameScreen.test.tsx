@@ -25,14 +25,10 @@ function newClient() {
   return new QueryClient({ defaultOptions: { queries: { retry: false } } });
 }
 
-function renderGame(game: GameState, handlers: { onGameChange?: (g: GameState) => void; onExitToLobby?: () => void } = {}) {
+function renderGame(game: GameState, handlers: { onGameChange?: (g: GameState) => void } = {}) {
   return render(
     <QueryClientProvider client={newClient()}>
-      <GameScreen
-        game={game}
-        onGameChange={handlers.onGameChange ?? vi.fn()}
-        onExitToLobby={handlers.onExitToLobby ?? vi.fn()}
-      />
+      <GameScreen game={game} onGameChange={handlers.onGameChange ?? vi.fn()} />
     </QueryClientProvider>,
   );
 }
@@ -83,6 +79,7 @@ describe('GameScreen', () => {
 
     renderGame(baseGame({ currentPlayerId: player1.userId }), { onGameChange });
     expect(screen.getByTestId('roll-button')).not.toBeDisabled();
+    expect(screen.getByTestId('target-score')).toHaveTextContent('100');
 
     fireEvent.click(screen.getByTestId('roll-button'));
 
@@ -110,20 +107,17 @@ describe('GameScreen', () => {
     expect(onGameChange).toHaveBeenCalledWith(afterBotRoll);
   });
 
-  it('shows rematch / back-to-lobby once finished, and both trigger the right calls', async () => {
+  it('shows rematch once finished, and it starts a fresh game', async () => {
     mockPlayers({ sessionForUserId: vi.fn().mockReturnValue(null) });
     const rematchState = baseGame({ status: 'IN_PROGRESS' });
     vi.spyOn(gamesApi, 'newGame').mockResolvedValue(rematchState);
     const onGameChange = vi.fn();
-    const onExitToLobby = vi.fn();
 
-    renderGame(baseGame({ status: 'FINISHED', winnerId: player1.userId }), { onGameChange, onExitToLobby });
+    renderGame(baseGame({ status: 'FINISHED', winnerId: player1.userId }), { onGameChange });
 
     expect(screen.getByTestId('game-finished-actions')).toBeInTheDocument();
     expect(screen.queryByTestId('game-controls')).not.toBeInTheDocument();
-
-    fireEvent.click(screen.getByTestId('back-to-lobby-button'));
-    expect(onExitToLobby).toHaveBeenCalledTimes(1);
+    expect(screen.queryByTestId('back-to-lobby-button')).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByTestId('rematch-button'));
     await waitFor(() => expect(onGameChange).toHaveBeenCalledWith(rematchState));
@@ -159,7 +153,7 @@ describe('GameScreen', () => {
 
     function Harness() {
       const [game, setGame] = useState<GameState>(baseGame({ currentPlayerId: player1.userId }));
-      return <GameScreen game={game} onGameChange={setGame} onExitToLobby={vi.fn()} />;
+      return <GameScreen game={game} onGameChange={setGame} />;
     }
 
     render(

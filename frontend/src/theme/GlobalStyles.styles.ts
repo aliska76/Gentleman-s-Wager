@@ -1,4 +1,5 @@
 import { createGlobalStyle } from 'styled-components';
+import greenTable from '../assets/greenTable.jpeg';
 
 /**
  * Design tokens (as CSS custom properties) plus base document resets —
@@ -57,7 +58,16 @@ export const GlobalStyles = createGlobalStyle`
 
   body {
     margin: 0;
-    background: var(--color-bg);
+    /*
+     * The green-felt table photo, dimmed by a dark overlay gradient so the
+     * existing ivory/gold/red text (tuned against the old flat --color-bg)
+     * stays just as legible on top of it. "fixed" keeps the table steady
+     * as the page scrolls, like it's the surface the game is laid out on.
+     */
+    background:
+      linear-gradient(rgba(13, 13, 13, 0.45), rgba(13, 13, 13, 0.55)),
+      url(${greenTable}) center / cover fixed;
+    background-color: var(--color-bg);
     color: var(--color-text);
     font-family: var(--font-body);
     font-size: var(--font-size-base);

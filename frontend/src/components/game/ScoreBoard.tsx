@@ -17,7 +17,9 @@ function PlayerCardContent({ testId, name, score, roundScore, active, won, posit
     <PlayerCard $active={active} $won={won} $position={position} data-testid={testId}>
       <Heading3>{name}</Heading3>
       <Score data-testid={`${testId}-score`}>{score}</Score>
-      {active && roundScore > 0 && <RoundScore data-testid={`${testId}-round-score`}>+{roundScore} this turn</RoundScore>}
+      <RoundScore $visible={active && roundScore > 0} data-testid={`${testId}-round-score`}>
+        {active && roundScore > 0 ? `+${roundScore} this turn` : '\u00A0'}
+      </RoundScore>
       {won && <WinnerBadge data-testid={`${testId}-winner-badge`}>Winner</WinnerBadge>}
     </PlayerCard>
   );

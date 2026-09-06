@@ -8,7 +8,7 @@ import { TurnIndicator } from '../components/game/TurnIndicator';
 import { GameControls } from '../components/game/GameControls';
 import { DiceTray } from '../components/dice/DiceTray';
 import { Button } from '../components/common/Button.styles';
-import { ErrorText, FinishedActions, Screen } from './GameScreen.styles';
+import { ErrorText, FinishedActions, Screen, TargetScore } from './GameScreen.styles';
 
 interface GameScreenProps {
   /**
@@ -18,7 +18,6 @@ interface GameScreenProps {
    */
   game: GameState;
   onGameChange: (game: GameState) => void;
-  onExitToLobby: () => void;
   className?: string;
 }
 
@@ -33,7 +32,7 @@ const BOT_STEP_DELAY_MS = 700;
  */
 const BUST_PAUSE_MS = 1200;
 
-export function GameScreen({ game, onGameChange, onExitToLobby, className }: GameScreenProps) {
+export function GameScreen({ game, onGameChange, className }: GameScreenProps) {
   const { player1, player2, sessionForUserId } = usePlayers();
   const [lastRoll, setLastRoll] = useState<{ dice: [number, number]; busted: boolean; rollId: number } | null>(
     null,
@@ -153,6 +152,7 @@ export function GameScreen({ game, onGameChange, onExitToLobby, className }: Gam
 
   return (
     <Screen className={className} data-testid="game-screen">
+      <TargetScore data-testid="target-score">First to {game.winningScore}</TargetScore>
       <ScoreBoard game={game} player1Label={player1Label} player2Label={player2Label} />
       <TurnIndicator game={game} currentPlayerLabel={currentPlayerLabel} isBotThinking={isBotTurn} />
       <DiceTray dice={lastRoll?.dice ?? null} busted={lastRoll?.busted} rollId={lastRoll?.rollId} />
@@ -171,7 +171,6 @@ export function GameScreen({ game, onGameChange, onExitToLobby, className }: Gam
           <Button data-testid="rematch-button" onClick={handleRestart} disabled={newGameMutation.isPending}>
             {newGameMutation.isPending ? 'Starting…' : 'Rematch'}
           </Button>
-          <Button data-testid="back-to-lobby-button" onClick={onExitToLobby}>Back to lobby</Button>
         </FinishedActions>
       )}
 

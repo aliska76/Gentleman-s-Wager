@@ -5,6 +5,7 @@ node_modules/
 dist/
 build/
 my_temps/
+Claude outputs/
 
 # Environment files (real secrets/config — .env.example files stay tracked)
 .env
