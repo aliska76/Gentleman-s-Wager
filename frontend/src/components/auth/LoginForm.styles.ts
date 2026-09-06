@@ -1,0 +1,19 @@
+import styled from 'styled-components';
+
+export const Form = styled.form`
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  max-width: 320px;
+`;
+
+export const Label = styled.label`
+  font-family: var(--font-heading);
+  color: var(--color-gold);
+`;
+
+export const ErrorText = styled.p`
+  color: var(--color-danger);
+  font-size: var(--font-size-sm);
+  margin: 0;
+`;

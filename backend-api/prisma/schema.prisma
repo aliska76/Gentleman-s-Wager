@@ -1,0 +1,33 @@
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
+}
+
+model User {
+  id        String   @id
+  username  String   @unique
+  wins      Int      @default(0)
+  avatarId  Int      @default(1)
+  isBot     Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+model Game {
+  id              String   @id
+  player1Id       String
+  player2Id       String
+  winningScore    Int      @default(100)
+  status          String   @default("IN_PROGRESS")
+  winnerId        String?
+  currentPlayerId String
+  score1          Int      @default(0)
+  score2          Int      @default(0)
+  roundScore      Int      @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
