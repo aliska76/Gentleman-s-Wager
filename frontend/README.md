@@ -1,4 +1,4 @@
-![Gentleman's Wager logo](src/assets/logo.png)
+<img src="src/assets/logo.png" alt="Gentleman's Wager logo" width="100">
 
 # 🎩 Gentleman's Wager — frontend
 
