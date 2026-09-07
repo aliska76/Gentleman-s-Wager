@@ -57,7 +57,7 @@ Supertest for unit and e2e tests.
 
 **Frontend** — React 18, TypeScript, Vite, styled-components (with
 `babel-plugin-styled-components` for readable debug class names),
-TanStack Query for data-fetching, Motion for React for animation,
+TanStack Query for data-fetching, [Motion](https://motion.dev/examples?platform=react) for the dice-roll animation,
 Vitest + React Testing Library for tests.
 
 **Infrastructure** — Docker + docker-compose (`api`, `frontend`, `redis`

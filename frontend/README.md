@@ -18,6 +18,13 @@ logic should live in the frontend").
   (plain `fetch` calls) plus a `api/use<Name>.ts` (the `useQuery`/
   `useMutation` wrapper around it), so loading/error/success state is
   handled consistently instead of hand-rolled per screen.
+- **[Motion](https://motion.dev/examples?platform=react)** (the `motion`
+  package, formerly Framer Motion) drives the one animation in this app:
+  the dice tumbling on every roll. `components/dice/Die.tsx` wraps the
+  cube with `motion.create(Cube)` (so a styled-component keeps its own
+  CSS while gaining `animate`/`transition` props) and animates `rotateX`/
+  `rotateY` through a couple of full turns so the cube visibly tumbles
+  before settling on the new roll's pips.
 - **Vitest + React Testing Library** for tests.
 
 ## Running it
