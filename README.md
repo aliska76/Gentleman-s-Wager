@@ -42,8 +42,11 @@ I run it."
   risking data that matters (`ARCHITECTURE.md` §8–9).
 - Rate limiting and health-check endpoints (`/health/live`, `/health/ready`).
 - A themed, responsive React frontend: a 3D dice tray, a hover-reveal
-  navigation menu, and a settings menu for background music/sound
-  effects with independent on/off toggles and a shared volume slider.
+  navigation menu, and a settings menu (gear icon, top right) for
+  background music/sound effects with independent on/off toggles and a
+  shared volume slider. **Music starts off by default** — browsers block
+  autoplay with sound until you interact with the page, so turn it on
+  from that menu to hear it.
 - Docker + docker-compose packaging for a one-command spin-up of the
   whole stack.
 
