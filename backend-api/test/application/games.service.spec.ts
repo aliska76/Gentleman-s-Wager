@@ -1,6 +1,6 @@
-import { ForbiddenException, NotFoundException } from '@nestjs/common';
+import { NotFoundException } from '@nestjs/common';
 import { GamesService } from '../../src/application/games.service';
-import { NotAParticipantError } from '../../src/domain/errors';
+import { CannotPlaySelfError, NotAParticipantError, NotBotsTurnError } from '../../src/domain/errors';
 import { FakeCache } from '../mocks/fake-cache';
 import { FakeDiceRoller } from '../mocks/fake-dice-roller';
 import { FakeGameRepository } from '../mocks/fake-game-repository';
@@ -34,7 +34,7 @@ describe('GamesService', () => {
   describe('createGame', () => {
     it('rejects playing against yourself', async () => {
       const { service, p1 } = setup();
-      await expect(service.createGame(p1.id, p1.id)).rejects.toThrow(ForbiddenException);
+      await expect(service.createGame(p1.id, p1.id)).rejects.toThrow(CannotPlaySelfError);
     });
 
     it('rejects an unknown opponent', async () => {
@@ -176,7 +176,7 @@ describe('GamesService', () => {
     it('rejects when the current player is not the bot', async () => {
       const { service, p1, p2 } = setup();
       const state = await service.createGame(p1.id, p2.id);
-      await expect(service.botTurn(state.id, p1.id)).rejects.toThrow(ForbiddenException);
+      await expect(service.botTurn(state.id, p1.id)).rejects.toThrow(NotBotsTurnError);
     });
 
     it('rolls once when below the hold threshold, touching only the cache', async () => {

@@ -29,12 +29,6 @@ export const FinishedActions = styled.div`
   gap: var(--space-3);
 `;
 
-export const ErrorText = styled.p`
-  color: var(--color-danger);
-  font-size: var(--font-size-sm);
-  margin: 0;
-`;
-
 export const TargetScore = styled.p`
   color: var(--color-text-muted);
   font-size: var(--font-size-sm);

@@ -1,4 +1,4 @@
-import { ForbiddenException, Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { randomUUID } from 'crypto';
 import { CACHE, ICache } from '../domain/ports/cache.port';
 import { DICE_ROLLER, IDiceRoller } from '../domain/ports/dice-roller.port';
@@ -7,8 +7,8 @@ import { GAME_WRITE_BUFFER, IGameWriteBuffer } from '../domain/ports/game-write-
 import { IUserRepository, USER_REPOSITORY } from '../domain/ports/user-repository.port';
 import { createGame, hold, roll } from '../domain/game-engine';
 import { decideBotMove } from '../domain/bot-policy';
-import { BotTurnResult, GameState, RollOutcome } from '../domain/entities';
-import { NotAParticipantError } from '../domain/errors';
+import { BotTurnResult, DEFAULT_WINNING_SCORE, GameState, RollOutcome } from '../domain/entities';
+import { CannotPlaySelfError, NotAParticipantError, NotBotsTurnError } from '../domain/errors';
 import { gameCacheKey, LEADERBOARD_CACHE_KEY } from './cache-keys';
 
 const GAME_CACHE_TTL_SECONDS = 300;
@@ -30,9 +30,9 @@ export class GamesService {
     @Inject(GAME_WRITE_BUFFER) private readonly writeBuffer: IGameWriteBuffer,
   ) {}
 
-  async createGame(requesterId: string, opponentUserId: string, winningScore = 100): Promise<GameState> {
+  async createGame(requesterId: string, opponentUserId: string, winningScore = DEFAULT_WINNING_SCORE): Promise<GameState> {
     if (opponentUserId === requesterId) {
-      throw new ForbiddenException('You cannot play against yourself.');
+      throw new CannotPlaySelfError();
     }
     const opponent = await this.users.findById(opponentUserId);
     if (!opponent) throw new NotFoundException('Opponent not found');
@@ -170,7 +170,7 @@ export class GamesService {
   private async assertIsBot(userId: string): Promise<void> {
     const user = await this.users.findById(userId);
     if (!user?.isBot) {
-      throw new ForbiddenException("It is not the computer opponent's turn.");
+      throw new NotBotsTurnError();
     }
   }
 }

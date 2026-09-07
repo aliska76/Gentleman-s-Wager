@@ -4,6 +4,11 @@
   "version": "0.1.0",
   "type": "module",
   "description": "Gentleman's Wager — frontend (React). No game logic lives here; it only displays state from backend-api and calls its endpoints.",
+  "author": "Alisa Rakhlina <aliska76@gmail.com>",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/aliska76/Gentleman-s-Wager"
+  },
   "scripts": {
     "dev": "vite",
     "dev:ssr": "vite --mode ssr",

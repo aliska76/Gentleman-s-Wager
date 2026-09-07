@@ -13,6 +13,7 @@ import { Brand, Header, HeaderActions, Logo, Main, Shell } from './App.styles';
 import { DropdownPanel, DropdownTrigger, DropdownWrapper } from './components/common/DropdownMenu.styles';
 import { SettingsMenu } from './components/settings/SettingsMenu';
 import { SoundProvider } from './sound/SoundContext';
+import { readStorageItem, writeStorageItem } from './utils/storage.utils';
 import logo from './assets/logo.png';
 
 const queryClient = new QueryClient();
@@ -26,27 +27,10 @@ type View = 'lobby' | 'game' | 'leaderboard';
  */
 const ACTIVE_GAME_ID_KEY = 'roeto:activeGameId';
 
-function readStoredGameId(): string | null {
-  try {
-    return localStorage.getItem(ACTIVE_GAME_ID_KEY);
-  } catch {
-    return null;
-  }
-}
-
-function writeStoredGameId(gameId: string | null): void {
-  try {
-    if (gameId) localStorage.setItem(ACTIVE_GAME_ID_KEY, gameId);
-    else localStorage.removeItem(ACTIVE_GAME_ID_KEY);
-  } catch {
-    // Persistence is best-effort — see PlayersContext's comment for why.
-  }
-}
-
 function AppShell() {
   const [view, setView] = useState<View>('lobby');
   const [activeGame, setActiveGame] = useState<GameState | null>(null);
-  const [restoredGameId] = useState(readStoredGameId);
+  const [restoredGameId] = useState(() => readStorageItem(ACTIVE_GAME_ID_KEY));
   const { player1, reset } = usePlayers();
 
   // Re-fetches the persisted game id fresh from the server on first mount —
@@ -62,12 +46,12 @@ function AppShell() {
   useEffect(() => {
     // The restorable game is gone (finished and evicted, wrong owner, etc.)
     // — drop the stale id so we don't keep retrying it on every reload.
-    if (restoreQuery.isError) writeStoredGameId(null);
+    if (restoreQuery.isError) writeStorageItem(ACTIVE_GAME_ID_KEY, null);
   }, [restoreQuery.isError]);
 
   function updateActiveGame(game: GameState | null) {
     setActiveGame(game);
-    writeStoredGameId(game?.id ?? null);
+    writeStorageItem(ACTIVE_GAME_ID_KEY, game?.id ?? null);
   }
 
   function handleGameStart(game: GameState) {

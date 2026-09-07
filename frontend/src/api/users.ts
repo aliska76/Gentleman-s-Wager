@@ -1,10 +1,6 @@
 import { apiRequest } from './client';
 import type { PaginatedResult, UserProfile } from '../types/user';
 
-export function getMe(token: string): Promise<UserProfile> {
-  return apiRequest<UserProfile>('/users/me', { jwt: token });
-}
-
 /** Use the returned id as opponentUserId in createGame() to play against the computer. */
 export function getBotOpponent(token: string): Promise<UserProfile> {
   return apiRequest<UserProfile>('/users/bot', { jwt: token });

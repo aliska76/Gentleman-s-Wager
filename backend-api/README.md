@@ -29,6 +29,7 @@ npm install
 cp .env.example .env
 npx prisma generate
 npx prisma migrate dev --name init
+npm run db:seed
 npm run start:dev
 ```
 
@@ -64,6 +65,42 @@ transparently falls back to the original `Math.random`-based roll; the
 game is never blocked on it. 
 
 You can try the library itself (dice notation, modifiers, the works) in its official interactive demo: https://dice-roller.github.io/documentation/.
+
+## Demo data
+
+`prisma/dev.db` itself is deliberately **not** committed to git (see
+`.gitignore`) — it's a binary SQLite file tied to whatever migration
+state it was created under, it can silently stop opening after a schema
+change nobody remembers to regenerate it for, and committing it would
+mean shipping one person's local test data as if it were fixtures.
+`prisma/migrations/` (which *is* committed) is the actual source of
+truth for the schema; the database file is just derived from it.
+
+Instead, `npm run db:seed` (`npx prisma db seed` under the hood) does
+two idempotent things every time it runs:
+
+1. Ensures the seeded "house" AI opponent user exists (see
+   ARCHITECTURE.md §9b) — required for `POST /games` against the bot and
+   for `botTurn` to work at all.
+2. Upserts two demo users (`edmund`, `charlotte` — the same usernames
+   used in the curl walkthrough below) with a few wins already on the
+   board, purely so `GET /leaderboard` isn't a blank slate the first
+   time anyone opens this project.
+
+It only ever touches `User` rows, not `Game` rows: the frontend resumes
+a game solely by an id it already has in its own browser's
+`localStorage` (`App.tsx`'s `roeto:activeGameId`), so a seeded `Game`
+row would be reachable only by calling the API with its id directly —
+invisible through the UI to anyone who didn't seed it themselves. Wins
+on a user, by contrast, show up in the leaderboard for anyone, immediately.
+
+Running it again later (e.g. after wiping your dev DB) is always safe —
+every write is an upsert keyed on a stable field (`isBot`, `username`),
+never a blind `create`.
+
+Docker already runs this on every container start (see the `Dockerfile`'s
+`CMD`), so this step is only something you do by hand when running the
+API outside Docker.
 
 ## Persistence: batched writes + WAL mode
 

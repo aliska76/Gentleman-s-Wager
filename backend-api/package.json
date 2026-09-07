@@ -3,6 +3,11 @@
   "version": "0.1.0",
   "private": true,
   "description": "Gentleman's Wager — backend API (NestJS). All game rules live here; the frontend only displays state.",
+  "author": "Alisa Rakhlina <aliska76@gmail.com>",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/aliska76/Gentleman-s-Wager"
+  },
   "scripts": {
     "build": "nest build",
     "start": "node dist/main.js",

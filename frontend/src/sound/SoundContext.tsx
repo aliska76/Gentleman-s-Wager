@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { MUSIC_TRACKS, SFX_CLIP_SECONDS, SFX_LIBRARY, type SfxKey } from './soundLibrary';
+import { readStorageItem, writeStorageItem } from '../utils/storage.utils';
 
 const MUSIC_ON_KEY = 'roeto:musicOn';
 const SFX_ON_KEY = 'roeto:sfxOn';
@@ -18,33 +19,17 @@ const DEFAULT_MUSIC_ON = false;
 const DEFAULT_SFX_ON = true;
 const DEFAULT_VOLUME = 0.6;
 
-/** Same best-effort try/catch pattern as PlayersContext — localStorage can throw (private browsing, disabled, quota), and persistence here is a nice-to-have, not a requirement. */
+/** The underlying read is shared with PlayersContext/App.tsx via utils/storage.utils.ts — boolean parsing is specific to this file. */
 function readStoredBoolean(key: string, fallback: boolean): boolean {
-  try {
-    const raw = localStorage.getItem(key);
-    return raw === null ? fallback : raw === 'true';
-  } catch {
-    return fallback;
-  }
+  const raw = readStorageItem(key);
+  return raw === null ? fallback : raw === 'true';
 }
 
 function readStoredVolume(): number {
-  try {
-    const raw = localStorage.getItem(VOLUME_KEY);
-    if (raw === null) return DEFAULT_VOLUME;
-    const value = Number(raw);
-    return Number.isFinite(value) ? Math.min(1, Math.max(0, value)) : DEFAULT_VOLUME;
-  } catch {
-    return DEFAULT_VOLUME;
-  }
-}
-
-function writeStored(key: string, value: string): void {
-  try {
-    localStorage.setItem(key, value);
-  } catch {
-    // Best-effort — see the comment above.
-  }
+  const raw = readStorageItem(VOLUME_KEY);
+  if (raw === null) return DEFAULT_VOLUME;
+  const value = Number(raw);
+  return Number.isFinite(value) ? Math.min(1, Math.max(0, value)) : DEFAULT_VOLUME;
 }
 
 interface SoundContextValue {
@@ -95,7 +80,7 @@ export function SoundProvider({ children }: { children: ReactNode }) {
   const toggleMusic = useCallback(() => {
     setMusicOnState((prev) => {
       const next = !prev;
-      writeStored(MUSIC_ON_KEY, String(next));
+      writeStorageItem(MUSIC_ON_KEY, String(next));
       return next;
     });
   }, []);
@@ -103,7 +88,7 @@ export function SoundProvider({ children }: { children: ReactNode }) {
   const toggleSfx = useCallback(() => {
     setSfxOnState((prev) => {
       const next = !prev;
-      writeStored(SFX_ON_KEY, String(next));
+      writeStorageItem(SFX_ON_KEY, String(next));
       return next;
     });
   }, []);
@@ -111,7 +96,7 @@ export function SoundProvider({ children }: { children: ReactNode }) {
   const setVolume = useCallback((value: number) => {
     const clamped = Math.min(1, Math.max(0, value));
     setVolumeState(clamped);
-    writeStored(VOLUME_KEY, String(clamped));
+    writeStorageItem(VOLUME_KEY, String(clamped));
   }, []);
 
   const playSfx = useCallback(

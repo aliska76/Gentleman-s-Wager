@@ -38,3 +38,16 @@ export const MutedText = styled.p`
   color: var(--color-text-muted);
   font-size: var(--font-size-sm);
 `;
+
+/**
+ * The one error-message style used by every form/screen (LoginForm,
+ * LoginScreen, GameScreen, LeaderboardScreen) that surfaces a mutation or
+ * query error — previously copy-pasted per file, and one of those copies
+ * had already drifted (missing font-size/margin), rendering visibly
+ * differently from the other three.
+ */
+export const ErrorText = styled.p`
+  color: var(--color-danger);
+  font-size: var(--font-size-sm);
+  margin: 0;
+`;

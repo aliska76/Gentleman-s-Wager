@@ -27,3 +27,17 @@ export class NotAParticipantError extends DomainError {
     super('You are not a participant in this game.');
   }
 }
+
+export class CannotPlaySelfError extends DomainError {
+  readonly code = 'CANNOT_PLAY_SELF';
+  constructor() {
+    super('You cannot play against yourself.');
+  }
+}
+
+export class NotBotsTurnError extends DomainError {
+  readonly code = 'NOT_BOTS_TURN';
+  constructor() {
+    super("It is not the computer opponent's turn.");
+  }
+}

@@ -40,9 +40,7 @@ async function bootstrap(): Promise<void> {
   const port = process.env.PORT ? Number(process.env.PORT) : 3000;
   await app.listen(port);
   const baseUrl = `http://localhost:${port}`;
-  // eslint-disable-next-line no-console
   console.log(`Gentleman's Wager API listening on ${baseUrl}`);
-  // eslint-disable-next-line no-console
   console.log(`Swagger docs at ${baseUrl}/docs`);
 }
 

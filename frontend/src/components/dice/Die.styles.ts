@@ -1,7 +1,7 @@
 import styled from 'styled-components';
 
-/** Also used by Die.tsx to size the perspective/rotation distance. */
-export const CUBE_SIZE = 64;
+/** Only used within this file, to size the Scene/Cube box and derive HALF below. */
+const CUBE_SIZE = 64;
 const HALF = CUBE_SIZE / 2;
 
 /** The box the cube rotates inside — perspective lives here, not on the cube itself. */

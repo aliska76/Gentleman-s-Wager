@@ -18,9 +18,3 @@ export const ScoreLabel = styled.label`
   font-size: var(--font-size-sm);
   color: var(--color-text-muted);
 `;
-
-export const ErrorText = styled.p`
-  color: var(--color-danger);
-  font-size: var(--font-size-sm);
-  margin: 0;
-`;

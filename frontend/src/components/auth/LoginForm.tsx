@@ -2,7 +2,8 @@ import { useState, type FormEvent } from 'react';
 import { useLogin } from '../../api/useAuth';
 import type { PlayerSession } from '../../context/PlayersContext';
 import { Button } from '../common/Button.styles';
-import { Form, Label, ErrorText } from './LoginForm.styles';
+import { ErrorText } from '../common/Typography.styles';
+import { Form, Label } from './LoginForm.styles';
 
 interface LoginFormProps {
   label: string;

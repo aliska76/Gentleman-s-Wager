@@ -1,4 +1,7 @@
-export type GameStatus = 'IN_PROGRESS' | 'FINISHED';
+type GameStatus = 'IN_PROGRESS' | 'FINISHED';
+
+/** Used when a caller doesn't specify a winning score — see game-engine.ts's createGame and GamesService.createGame. */
+export const DEFAULT_WINNING_SCORE = 100;
 
 /**
  * The full state of one game. This is the only shape the domain engine
@@ -52,7 +55,7 @@ export interface BotTurnResult {
  * collection (not just this page) — a client uses it to know whether
  * there's more to fetch.
  */
-export interface PaginationMeta {
+interface PaginationMeta {
   limit: number;
   total: number;
 }

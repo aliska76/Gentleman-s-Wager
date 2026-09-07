@@ -11,9 +11,3 @@ export const Label = styled.label`
   font-family: var(--font-heading);
   color: var(--color-gold);
 `;
-
-export const ErrorText = styled.p`
-  color: var(--color-danger);
-  font-size: var(--font-size-sm);
-  margin: 0;
-`;

@@ -114,7 +114,7 @@ npm install
 cp .env.example .env
 npx prisma generate
 npx prisma migrate dev --name init
-npm run db:seed        # creates the seeded AI opponent user
+npm run db:seed        # AI opponent + a couple of demo leaderboard entries
 npm run start:dev
 ```
 
@@ -122,6 +122,16 @@ API listens on `http://localhost:3000`; interactive docs at
 `http://localhost:3000/docs`. Full detail (rate limits, testing, the
 persistence/caching internals, a curl walkthrough) is in
 [`backend-api/README.md`](./backend-api/README.md).
+
+The database file itself (`backend-api/prisma/dev.db`) is intentionally
+**not** committed to the repo — it's binary, tied to whatever migration
+state it was created under, and would otherwise carry one person's local
+test data. `npm run db:seed` is the reproducible alternative: it always
+runs against the current schema and leaves you with a non-empty
+leaderboard instead of a blank one. See
+[`backend-api/README.md`](./backend-api/README.md#demo-data) for exactly
+what it seeds. The Docker path above runs this automatically on every
+container start, so it only needs doing by hand here.
 
 Redis is optional here — without `REDIS_URL` reachable, the app still
 works, just without the cache speed-up. To run it locally:
@@ -181,3 +191,7 @@ scale — see `ARCHITECTURE.md` §15 for the full reasoning):
   in code (`frontend/src/sound/soundLibrary.ts`) because no short
   versions were available.
 - User-uploaded avatars, instead of the current fixed built-in set.
+
+## Author
+
+Alisa Rakhlina — aliska76@gmail.com

@@ -3,8 +3,8 @@ import { usePlayers } from '../context/PlayersContext';
 import { useLeaderboard } from '../api/useUsers';
 import { LeaderboardTable } from '../components/leaderboard/LeaderboardTable';
 import { PaginationControls } from '../components/leaderboard/PaginationControls';
-import { Heading2, Text } from '../components/common/Typography.styles';
-import { ErrorText, Screen } from './LeaderboardScreen.styles';
+import { ErrorText, Heading2, Text } from '../components/common/Typography.styles';
+import { Screen } from './LeaderboardScreen.styles';
 
 const PAGE_SIZE = 10;
 

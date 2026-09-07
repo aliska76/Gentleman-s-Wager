@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from 'react';
 import type { LoginResponse } from '../types/auth';
+import { readStorageItem, writeStorageItem } from '../utils/storage.utils';
 
 export type PlayerSession = LoginResponse;
 
@@ -11,27 +12,24 @@ const PLAYER2_KEY = 'roeto:player2';
  * "persist data" extra) so a page reload doesn't kick everyone back to the
  * login screen mid-session — a reload is otherwise indistinguishable from a
  * fresh visit, which is especially disruptive here since both players are
- * simulated on this one page/session. Reads/writes are wrapped in try/catch
- * since localStorage can throw (private browsing, disabled, quota) —
- * persistence is a convenience on top of the in-memory state, not a
- * requirement, so it just falls back silently.
+ * simulated on this one page/session. The underlying read/write is shared
+ * with App.tsx and SoundContext via utils/storage.utils.ts (localStorage
+ * can throw — private browsing, disabled, quota — so persistence is a
+ * convenience on top of in-memory state, not a requirement, and falls
+ * back silently); JSON parsing is specific to this file, so it stays here.
  */
 function readStoredSession(key: string): PlayerSession | null {
+  const raw = readStorageItem(key);
+  if (!raw) return null;
   try {
-    const raw = localStorage.getItem(key);
-    return raw ? (JSON.parse(raw) as PlayerSession) : null;
+    return JSON.parse(raw) as PlayerSession;
   } catch {
     return null;
   }
 }
 
 function writeStoredSession(key: string, session: PlayerSession | null): void {
-  try {
-    if (session) localStorage.setItem(key, JSON.stringify(session));
-    else localStorage.removeItem(key);
-  } catch {
-    // Persistence is best-effort — see the comment above.
-  }
+  writeStorageItem(key, session ? JSON.stringify(session) : null);
 }
 
 interface PlayersContextValue {

@@ -2,11 +2,11 @@ import { useState } from 'react';
 import { usePlayers } from '../context/PlayersContext';
 import { LoginForm } from '../components/auth/LoginForm';
 import { Button } from '../components/common/Button.styles';
-import { Heading2, Text } from '../components/common/Typography.styles';
+import { ErrorText, Heading2, Text } from '../components/common/Typography.styles';
 import { useBotOpponent } from '../api/useUsers';
 import { useCreateGame } from '../api/useGames';
 import type { GameState } from '../types/game';
-import { Choices, ErrorText, Screen, ScoreLabel } from './LoginScreen.styles';
+import { Choices, Screen, ScoreLabel } from './LoginScreen.styles';
 
 type OpponentChoice = 'bot' | 'human' | null;
 

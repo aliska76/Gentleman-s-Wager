@@ -8,7 +8,8 @@ import { TurnIndicator } from '../components/game/TurnIndicator';
 import { GameControls } from '../components/game/GameControls';
 import { DiceTray } from '../components/dice/DiceTray';
 import { Button } from '../components/common/Button.styles';
-import { ErrorText, FinishedActions, Screen, TargetScore } from './GameScreen.styles';
+import { ErrorText } from '../components/common/Typography.styles';
+import { FinishedActions, Screen, TargetScore } from './GameScreen.styles';
 import { useSound } from '../sound/SoundContext';
 
 interface GameScreenProps {

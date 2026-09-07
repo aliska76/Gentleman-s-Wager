@@ -1,4 +1,4 @@
-import { GameState, RollOutcome } from './entities';
+import { DEFAULT_WINNING_SCORE, GameState, RollOutcome } from './entities';
 import { GameAlreadyFinishedError, NotYourTurnError } from './errors';
 
 /**
@@ -9,7 +9,7 @@ import { GameAlreadyFinishedError, NotYourTurnError } from './errors';
  * plain Jest. See ARCHITECTURE.md section 5 for the rules this encodes.
  */
 
-export type DiceRoller = () => [number, number];
+type DiceRoller = () => [number, number];
 
 export function rollTwoDice(): [number, number] {
   const a = 1 + Math.floor(Math.random() * 6);
@@ -17,7 +17,12 @@ export function rollTwoDice(): [number, number] {
   return [a, b];
 }
 
-export function createGame(id: string, player1Id: string, player2Id: string, winningScore = 100): GameState {
+export function createGame(
+  id: string,
+  player1Id: string,
+  player2Id: string,
+  winningScore = DEFAULT_WINNING_SCORE,
+): GameState {
   return {
     id,
     player1Id,
