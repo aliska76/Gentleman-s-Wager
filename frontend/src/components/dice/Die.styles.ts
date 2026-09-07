@@ -53,7 +53,7 @@ export const Face = styled.div<{ $face: CubeFace }>`
 `;
 
 /** Pip diameter — fixed px, not a percentage of the grid cell. */
-const PIP_SIZE = 9;
+const PIP_SIZE = 11;
 
 /*
  * A fixed pixel size (plus place-self: center to sit in the middle of its

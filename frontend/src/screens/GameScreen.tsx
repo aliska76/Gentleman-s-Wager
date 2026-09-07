@@ -9,6 +9,7 @@ import { GameControls } from '../components/game/GameControls';
 import { DiceTray } from '../components/dice/DiceTray';
 import { Button } from '../components/common/Button.styles';
 import { ErrorText, FinishedActions, Screen, TargetScore } from './GameScreen.styles';
+import { useSound } from '../sound/SoundContext';
 
 interface GameScreenProps {
   /**
@@ -31,14 +32,33 @@ const BOT_STEP_DELAY_MS = 700;
  * otherwise roll again immediately).
  */
 const BUST_PAUSE_MS = 1200;
+// Gives the roll sound (capped to its first second, see soundLibrary.ts)
+// a bit of a head start before the win/lose sound comes in, instead of the
+// two starting at literally the same instant when a Hold ends the game
+// right after a roll. Short on purpose — this isn't meant to wait out the
+// whole roll clip, just soften the transition.
+const GAME_OVER_SOUND_DELAY_MS = 350;
 
 export function GameScreen({ game, onGameChange, className }: GameScreenProps) {
   const { player1, player2, sessionForUserId } = usePlayers();
+  const { playSfx } = useSound();
   const [lastRoll, setLastRoll] = useState<{ dice: [number, number]; busted: boolean; rollId: number } | null>(
     null,
   );
   const [bustPauseActive, setBustPauseActive] = useState(false);
   const botTurnInFlight = useRef(false);
+  // Roll/Hold are disabled via `isPending` once React re-renders, but that
+  // re-render isn't synchronous with the click — a fast double-click (or a
+  // held-down Enter key) can fire a second roll before the first one's
+  // `isPending` has actually disabled the button. Two in-flight rolls can
+  // then resolve out of order, and since onGameChange/registerRoll just
+  // overwrite state with whichever response arrives last, an earlier
+  // non-bust roll's response landing after a later bust's would silently
+  // undo the bust's turn-pass — the dice/"Bust!" message would show the
+  // bust, but game.currentPlayerId (and therefore whose turn it looks
+  // like) would revert to the pre-bust player. This ref closes that
+  // window immediately on click, before React re-renders at all.
+  const actionInFlight = useRef(false);
   const rollIdRef = useRef(0);
   const bustPauseTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -60,13 +80,17 @@ export function GameScreen({ game, onGameChange, className }: GameScreenProps) {
     game.player2Id === botQuery.data?.id ? (botQuery.data?.username ?? 'AI') : (player2?.username ?? 'Player 2');
   const currentPlayerLabel = game.currentPlayerId === game.player1Id ? player1Label : player2Label;
 
-  function registerRoll(dice: [number, number], busted: boolean) {
+  function registerRoll(dice: [number, number], busted: boolean, isHuman: boolean) {
     rollIdRef.current += 1;
     setLastRoll({ dice, busted, rollId: rollIdRef.current });
     if (busted) {
       setBustPauseActive(true);
       if (bustPauseTimer.current) clearTimeout(bustPauseTimer.current);
       bustPauseTimer.current = setTimeout(() => setBustPauseActive(false), BUST_PAUSE_MS);
+      // The "sad crowd sigh" is only for a human's bust — the bot already
+      // gets its own tell (the assignment's 6 & 6 action-lock/message) and
+      // doesn't need a sound on top of it.
+      if (isHuman) playSfx('bust');
     }
   }
 
@@ -97,7 +121,7 @@ export function GameScreen({ game, onGameChange, className }: GameScreenProps) {
           onSuccess: (result) => {
             onGameChange(result.state);
             if (result.action === 'roll' && result.dice) {
-              registerRoll(result.dice, Boolean(result.busted));
+              registerRoll(result.dice, Boolean(result.busted), false);
             }
           },
           onSettled: () => {
@@ -113,22 +137,56 @@ export function GameScreen({ game, onGameChange, className }: GameScreenProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isBotTurn, game, player1]);
 
+  // Win/lose sound. 'win' plays whenever anyone wins, human or AI
+  // opponent alike; 'lose' only plays when the bot is specifically the
+  // winner (i.e. a human lost to the AI) — losing to another human on the
+  // same page doesn't get the sad-crowd sound. Keyed on game.status/game.id
+  // rather than including botQuery.data/playSfx (same reasoning as the
+  // bot-turn effect above) so this fires exactly once per finished game
+  // instance, not on every incidental re-render.
+  useEffect(() => {
+    if (game.status !== 'FINISHED' || !botQuery.data) return;
+    const winnerIsBot = game.winnerId === botQuery.data.id;
+    const key = winnerIsBot ? 'lose' : 'win';
+    const timer = setTimeout(() => playSfx(key), GAME_OVER_SOUND_DELAY_MS);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [game.status, game.id]);
+
   function handleRoll() {
-    if (!activeSession) return;
+    if (!activeSession || actionInFlight.current) return;
+    actionInFlight.current = true;
+    // Fired on the click itself, not gated on the request succeeding —
+    // this is only ever reached for a human's own roll (the bot's rolls go
+    // through the separate botTurnMutation above), matching "roll sound,
+    // but not when AI rolls".
+    playSfx('roll');
     rollMutation.mutate(
       { token: activeSession.token, gameId: game.id },
       {
         onSuccess: (outcome) => {
           onGameChange(outcome.state);
-          registerRoll(outcome.dice, outcome.busted);
+          registerRoll(outcome.dice, outcome.busted, true);
+        },
+        onSettled: () => {
+          actionInFlight.current = false;
         },
       },
     );
   }
 
   function handleHold() {
-    if (!activeSession) return;
-    holdMutation.mutate({ token: activeSession.token, gameId: game.id }, { onSuccess: onGameChange });
+    if (!activeSession || actionInFlight.current) return;
+    actionInFlight.current = true;
+    holdMutation.mutate(
+      { token: activeSession.token, gameId: game.id },
+      {
+        onSuccess: onGameChange,
+        onSettled: () => {
+          actionInFlight.current = false;
+        },
+      },
+    );
   }
 
   /** Backs both "Rematch" (after FINISHED) and "Restart" (mid-game) — same fresh-game call either way. */

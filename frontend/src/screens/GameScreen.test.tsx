@@ -4,6 +4,7 @@ import { act, render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { GameScreen } from './GameScreen';
 import { usePlayers } from '../context/PlayersContext';
+import { useSound } from '../sound/SoundContext';
 import * as gamesApi from '../api/games';
 import * as usersApi from '../api/users';
 import type { GameState } from '../types/game';
@@ -11,6 +12,10 @@ import type { UserProfile } from '../types/user';
 
 vi.mock('../context/PlayersContext', () => ({
   usePlayers: vi.fn(),
+}));
+
+vi.mock('../sound/SoundContext', () => ({
+  useSound: vi.fn(),
 }));
 
 // Mirrors GameScreen's own BOT_STEP_DELAY_MS — kept in sync with a comment
@@ -65,6 +70,18 @@ describe('GameScreen', () => {
   beforeEach(() => {
     vi.restoreAllMocks();
     vi.spyOn(usersApi, 'getBotOpponent').mockResolvedValue(bot);
+    // Sound is a side effect the tests don't assert on here — a plain
+    // no-op stub keeps every existing test unconcerned with it, same as
+    // mocking usePlayers.
+    vi.mocked(useSound).mockReturnValue({
+      musicOn: false,
+      sfxOn: true,
+      volume: 0.6,
+      toggleMusic: vi.fn(),
+      toggleSfx: vi.fn(),
+      setVolume: vi.fn(),
+      playSfx: vi.fn(),
+    });
   });
 
   afterEach(() => {

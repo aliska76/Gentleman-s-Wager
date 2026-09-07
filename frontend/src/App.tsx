@@ -9,7 +9,10 @@ import { Heading1 } from './components/common/Typography.styles';
 import { GlobalStyles } from './theme/GlobalStyles.styles';
 import { useGame } from './api/useGames';
 import type { GameState } from './types/game';
-import { Brand, Header, Logo, Main, MenuButton, MenuWrapper, Nav, Shell } from './App.styles';
+import { Brand, Header, HeaderActions, Logo, Main, Shell } from './App.styles';
+import { DropdownPanel, DropdownTrigger, DropdownWrapper } from './components/common/DropdownMenu.styles';
+import { SettingsMenu } from './components/settings/SettingsMenu';
+import { SoundProvider } from './sound/SoundContext';
 import logo from './assets/logo.png';
 
 const queryClient = new QueryClient();
@@ -92,24 +95,27 @@ function AppShell() {
           <Logo src={logo} alt="" data-testid="app-logo" />
           <Heading1>Gentleman&rsquo;s Wager</Heading1>
         </Brand>
-        {player1 && (
-          <MenuWrapper>
-            <MenuButton type="button" aria-label="Menu" data-testid="nav-menu-button">
-              <span />
-              <span />
-              <span />
-              <span />
-            </MenuButton>
-            <Nav data-testid="app-nav">
-              <Button data-testid="nav-leaderboard-button" onClick={() => setView('leaderboard')}>Leaderboard</Button>
-              {activeGame && (
-                <Button data-testid="nav-current-game-button" onClick={() => setView('game')}>Current game</Button>
-              )}
-              <Button data-testid="nav-new-game-button" onClick={handleNewGame}>New game</Button>
-              <Button data-testid="nav-new-player-button" onClick={handleNewPlayer}>New player</Button>
-            </Nav>
-          </MenuWrapper>
-        )}
+        <HeaderActions>
+          <SettingsMenu />
+          {player1 && (
+            <DropdownWrapper>
+              <DropdownTrigger type="button" aria-label="Menu" data-testid="nav-menu-button">
+                <span />
+                <span />
+                <span />
+                <span />
+              </DropdownTrigger>
+              <DropdownPanel data-testid="app-nav">
+                <Button data-testid="nav-leaderboard-button" onClick={() => setView('leaderboard')}>Leaderboard</Button>
+                {activeGame && (
+                  <Button data-testid="nav-current-game-button" onClick={() => setView('game')}>Current game</Button>
+                )}
+                <Button data-testid="nav-new-game-button" onClick={handleNewGame}>New game</Button>
+                <Button data-testid="nav-new-player-button" onClick={handleNewPlayer}>New player</Button>
+              </DropdownPanel>
+            </DropdownWrapper>
+          )}
+        </HeaderActions>
       </Header>
 
       <Main data-testid="app-main">
@@ -127,8 +133,10 @@ export function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <PlayersProvider>
-        <GlobalStyles />
-        <AppShell />
+        <SoundProvider>
+          <GlobalStyles />
+          <AppShell />
+        </SoundProvider>
       </PlayersProvider>
     </QueryClientProvider>
   );

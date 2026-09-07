@@ -6,7 +6,10 @@ const MOBILE_BREAKPOINT = '480px';
 export const Board = styled.div`
   display: flex;
   align-items: center;
-  gap: var(--space-4);
+  /* Grows past the space-4 default as Screen (GameScreen.styles.ts) grows
+     on wide screens, so the two cards spread out instead of just leaving
+     more empty margin on either side of a still-tightly-packed row. */
+  gap: max(var(--space-4), 3vw);
   justify-content: center;
 
   /*
@@ -40,7 +43,8 @@ export const PlayerCard = styled.div<{ $active?: boolean; $won?: boolean; $posit
   border-radius: var(--radius-lg);
   padding: var(--space-3) var(--space-4);
   text-align: center;
-  min-width: 160px;
+  /* Same idea as Board's gap above — grows on wide screens instead of staying pinned at 160px. */
+  min-width: max(160px, 12vw);
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
   ${(props) => props.$active && 'box-shadow: 0 0 0 1px var(--color-gold);'}
 

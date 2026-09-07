@@ -1,6 +1,42 @@
+![Gentleman's Wager logo](frontend/src/assets/logo.png)
+
 # Gentleman's Wager — Architecture & Decisions
 
-Status: **Design finalized, pending approval to start scaffolding.** No implementation code has been written yet.
+## Architecture Diagram
+
+```mermaid
+flowchart TB
+    subgraph Browser["Browser — two simulated player sessions on one page"]
+        FE["frontend<br/>React + Vite SPA<br/>(zero game logic — displays state, calls the API)"]
+    end
+
+    subgraph Compose["docker-compose"]
+        subgraph API["backend-api — NestJS"]
+            Ctrl["API layer<br/>controllers, guards, DTO validation"]
+            App["Application layer<br/>AuthService / UsersService / GamesService"]
+            Dom["Domain layer<br/>GameEngine, bot-policy<br/>(pure TS — no Nest/Prisma/Redis imports)"]
+            Infra["Infrastructure layer<br/>Prisma repos · Redis cache ·<br/>mock auth · dice roller — all behind ports"]
+            Ctrl --> App
+            App --> Dom
+            App --> Infra
+        end
+        DB[("SQLite<br/>WAL mode, via Prisma")]
+        Cache[("Redis<br/>leaderboard cache-aside +<br/>write-behind game buffer")]
+        Infra --> DB
+        Infra --> Cache
+    end
+
+    FE -- "JSON over HTTP<br/>/auth · /games · /users · /leaderboard" --> Ctrl
+```
+
+The frontend never talks to SQLite or Redis directly, and the domain
+layer never talks to Nest, Prisma, or Redis — every arrow crossing a
+layer boundary above goes through an interface ("port"), not a concrete
+class. See §2 for the principles this enforces and §4 onward for what's
+behind each box. The per-project `src/` layout (how the backend's
+layers and the frontend's feature folders are actually organized on
+disk) is documented in each project's own README — linked from §4 —
+rather than duplicated here.
 
 ## 1. Goal
 
@@ -61,69 +97,13 @@ cross-project tooling coupling, which matters more at this project's
 size than DRY-ness across a request/response boundary that rarely
 changes.
 
-### `backend-api/src` layout (Ports & Adapters / Hexagonal-lite)
-
-```
-domain/            Pure game rules & entities. No imports from Nest/Prisma/Redis.
-  game-engine.ts   Pure functions/class: roll(state), hold(state), isBust(), checkWin()
-  entities.ts      GameState, Player, etc. (plain TS types)
-  ports/           Repository & service INTERFACES only (no implementation)
-    game-repository.port.ts
-    game-write-buffer.port.ts
-    user-repository.port.ts
-    cache.port.ts
-    auth-provider.port.ts
-    dice-roller.port.ts
-
-application/       Use-case services orchestrating domain + ports
-  games.service.ts
-  users.service.ts
-  auth.service.ts
-
-infrastructure/    Concrete adapters implementing the ports above
-  persistence/prisma/   PrismaGameRepository, PrismaUserRepository
-  persistence/          BatchedGameWriteBuffer (implements game-write-buffer.port; §8.3)
-  cache/redis/          RedisCache (implements cache.port)
-  auth/mock/            MockAuthProvider (implements auth-provider.port)
-  dice/                 GracefulDiceRollerAdapter (implements dice-roller.port)
-
-modules/           NestJS wiring: controllers, DI bindings (port → adapter), guards
-  auth.module.ts
-  users.module.ts
-  games.module.ts
-  cache.module.ts
-  health.module.ts
-
-common/            Rate-limit guard, exception filters, DTO validation
-```
-
-Nothing in `domain/` or `application/` imports from `infrastructure/` directly — only interfaces (`ports/`). NestJS modules bind an interface token to a concrete adapter at wiring time, e.g. `{ provide: GAME_REPOSITORY, useClass: PrismaGameRepository }`. Swapping SQLite→Aurora Postgres (via Prisma) needs only an env var + Prisma `provider` change. Swapping away from Prisma entirely (e.g. Aurora Data API, a different ORM) needs only a new adapter class — zero changes to domain, application, or controllers.
-
-### `frontend/src` layout
-
-```
-types/          Hand-written interfaces mirroring backend-api's DTOs
-                (checked against domain/entities.ts and the controllers)
-api/            client.ts (fetch wrapper: base URL, JWT, error
-                normalization) plus one <resource>.ts (raw fetch calls)
-                and one use<Resource>.ts (React Query wrapper) per
-                backend resource — auth, games, users
-theme/          GlobalStyles.styles.ts — the one file with actual
-                color/spacing/font values, as CSS custom properties;
-                every other styled component reads them via var(--...)
-context/        PlayersContext — holds both players' sessions at once
-                (see "Two players, one page" in frontend/README.md) and
-                resolves which one owns the current turn
-components/     Small reusable pieces (dice/, game/, leaderboard/,
-                auth/, common/), each with its own <Name>.styles.ts
-                (styled-components) beside it
-screens/        LoginScreen, GameScreen, LeaderboardScreen — compose
-                components, own the data-fetching for their view
-```
-
-No game logic lives here at all — every screen only calls
-`backend-api`'s endpoints and renders whatever state comes back, per the
-assignment brief ("No game logic should live in the frontend").
+Each project's internal `src/` layout — the backend's Ports & Adapters
+(hexagonal-lite) folders (`domain/` / `application/` / `infrastructure/`
+/ `modules/`), and the frontend's feature folders (`api/` / `theme/` /
+`context/` / `sound/` / `components/` / `screens/`) — is documented in
+that project's own README rather than duplicated here: see
+[`backend-api/README.md`](backend-api/README.md#layout) and
+[`frontend/README.md`](frontend/README.md#folder-structure).
 
 ## 5. Domain Model & Game Rules (precise semantics)
 

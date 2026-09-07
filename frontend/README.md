@@ -1,4 +1,6 @@
-# Gentleman's Wager — frontend
+![Gentleman's Wager logo](src/assets/logo.png)
+
+# 🎩 Gentleman's Wager — frontend
 
 React + TypeScript (Vite) client for the Roeto home assignment. It has no
 game logic of its own — it only calls `backend-api`'s endpoints and
@@ -111,13 +113,23 @@ src/
     PlayersContext.tsx      holds both players' sessions at once (see
                              "Two players, one page" below) and resolves
                              which one owns the current turn
+  sound/
+    soundLibrary.ts          the ONE file listing actual track/effect
+                             files (paths + display names) — add, rename
+                             or remove a track here and nowhere else
+    SoundContext.tsx         mirrors PlayersContext's pattern: on/off +
+                             volume state (persisted to localStorage),
+                             the looping <audio> element for music, and
+                             playSfx() for one-shot effects
   components/    Small, reusable pieces — dice/, game/, leaderboard/,
-                 auth/, common/ (shared Button/Card primitives) — each
-                 with its own <Name>.styles.ts next to it
+                 auth/, common/ (shared Button/Card primitives, the
+                 hover-dropdown primitive in DropdownMenu.styles.ts, and
+                 icons.tsx), settings/ (the sound settings dropdown) —
+                 each with its own <Name>.styles.ts next to it
   screens/       LoginScreen, GameScreen, LeaderboardScreen — compose
                  components, own the data-fetching for their view
   App.tsx        top-level view switch + providers (QueryClientProvider,
-                 PlayersProvider, GlobalStyles)
+                 PlayersProvider, SoundProvider, GlobalStyles)
 ```
 
 ## Two players, one page
@@ -142,6 +154,60 @@ throughout the app) reads them via `var(--color-gold)` etc., never a
 literal. Re-theming the app means editing that one file; nothing else
 needs to change. The palette itself comes from `../assets/logo.png`
 (black top hat, gold/bronze band, ivory dice, one red pip).
+
+## Sound
+
+Background music and sound effects are both opt-in and fully
+data-driven, so adding, swapping or removing a track never touches
+component code:
+
+- `sound/soundLibrary.ts` lists the music tracks and the four sound
+  effect keys (`roll`, `bust`, `win`, `lose`) with the file path each
+  one plays. To change what plays, edit this file only.
+- `sound/SoundContext.tsx` (`SoundProvider` / `useSound()`) owns
+  on/off state for music and effects and a shared volume, persisted to
+  `localStorage` the same way `PlayersContext` persists sessions. It
+  exposes `playSfx(key)` for one-shot effects and manages a single
+  looping `<audio>` element for music.
+- The gear icon in the header (`components/settings/SettingsMenu.tsx`)
+  is the only UI for this: toggle music, toggle sound effects, and one
+  volume slider that controls both (greyed out and disabled when both
+  are off).
+- `GameScreen` calls `playSfx('roll')` on every human roll and
+  `playSfx('bust')` on a human bust — never for the bot's own rolls or
+  busts, per spec. When a game finishes, `playSfx('win')` plays for
+  whoever wins (human or bot opponent alike), while `playSfx('lose')`
+  only plays when the bot specifically is the winner — losing to another
+  real player on the same page doesn't get the sad-crowd sound. Both are
+  fired ~350ms after the game finishes (`GAME_OVER_SOUND_DELAY_MS`), just
+  long enough that they don't start at literally the same instant as a
+  roll/bust sound from the move that ended the game.
+
+The actual audio files ship in the repo, at:
+
+```
+public/audio/music/theme.mp3        Scott Joplin — The Entertainer
+public/audio/sfx/roll.mp3
+public/audio/sfx/bust-sigh.mp3
+public/audio/sfx/win.mp3
+public/audio/sfx/lose.mp3
+```
+
+If any of them are ever removed, playback fails silently rather than
+breaking the app (`.play().catch(() => {})`) — `soundLibrary.ts`'s file
+names are the only thing that needs to match to add, swap, or replace a
+track.
+
+**`roll` and `win` are capped to their first second** (`SFX_CLIP_SECONDS`
+in `soundLibrary.ts`, enforced by `SoundContext.playSfx` via a
+`setTimeout` that pauses the clip): only longer source recordings were
+available for those two, and playing them in full would feel wrong for
+what's meant to be a short sting. `bust` and `lose` play in full, since
+those files are already short.
+
+Music defaults to **off** on first load (autoplay policies block sound
+before a user gesture anyway; the first manual toggle click is that
+gesture), sound effects default to **on**.
 
 ## Why no shared types package
 
